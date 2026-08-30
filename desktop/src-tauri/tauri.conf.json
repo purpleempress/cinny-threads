@@ -34,7 +34,7 @@
   },
   "productName": "Cinny",
   "mainBinaryName": "cinny-threads",
-  "version": "4.12.6-threads.2",
+  "version": "4.12.6-threads.3",
   "identifier": "io.github.purpleempress.CinnyThreads",
   "app": {
     "security": {

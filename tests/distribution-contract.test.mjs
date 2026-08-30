@@ -36,9 +36,9 @@ test('desktop release metadata uses the current private-build version', async ()
     'packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml'
   );
 
-  assert.equal(config.version, '4.12.6-threads.2');
-  assert.equal(desktopPackage.version, '4.12.6-threads.2');
-  assert.match(appstream, /<release version="4\.12\.6-threads\.2"/);
+  assert.equal(config.version, '4.12.6-threads.3');
+  assert.equal(desktopPackage.version, '4.12.6-threads.3');
+  assert.match(appstream, /<release version="4\.12\.6-threads\.3"/);
 });
 
 test('desktop webview permissions exclude command execution and arbitrary filesystem access', async () => {

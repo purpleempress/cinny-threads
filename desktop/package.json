@@ -1,6 +1,6 @@
 {
   "name": "cinny-threads-desktop",
-  "version": "4.12.6-threads.2",
+  "version": "4.12.6-threads.3",
   "private": true,
   "description": "Thread-focused Cinny desktop wrapper",
   "scripts": {

@@ -14,6 +14,11 @@ use tauri::{
 };
 use tauri_plugin_opener::OpenerExt;
 
+#[cfg(any(not(debug_assertions), test))]
+fn versioned_localhost_url(port: u16, version: &str) -> String {
+    format!("http://localhost:{port}/?app-version={version}")
+}
+
 pub fn run() {
     for key in ["NO_PROXY", "no_proxy"] {
         let current_value = std::env::var(key).unwrap_or_default();
@@ -40,7 +45,9 @@ pub fn run() {
 
             #[cfg(not(debug_assertions))]
             let window_url = {
-                let url = format!("http://localhost:{port}").parse().unwrap();
+                let url = versioned_localhost_url(port, env!("CARGO_PKG_VERSION"))
+                    .parse()
+                    .unwrap();
                 WebviewUrl::External(url)
             };
 
@@ -63,4 +70,18 @@ pub fn run() {
         })
         .run(context)
         .expect("error while building Tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::versioned_localhost_url;
+
+    #[test]
+    fn desktop_url_is_versioned_to_bypass_stale_web_assets() {
+        assert_eq!(env!("CARGO_PKG_VERSION"), "4.12.6-threads.3");
+        assert_eq!(
+            versioned_localhost_url(44548, env!("CARGO_PKG_VERSION")),
+            "http://localhost:44548/?app-version=4.12.6-threads.3"
+        );
+    }
 }
