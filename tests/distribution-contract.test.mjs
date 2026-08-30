@@ -41,9 +41,13 @@ test('desktop release metadata uses the current private-build version', async ()
   assert.match(appstream, /<release version="4\.12\.6-threads\.3"/);
 });
 
-test('desktop webview permissions exclude command execution and arbitrary filesystem access', async () => {
+test('desktop webview permissions allow safe external URLs without filesystem access', async () => {
   const capability = await read('desktop/src-tauri/capabilities/desktop.json');
-  assert.doesNotMatch(capability, /shell:allow-execute|fs:allow-|http:default|process:allow-/);
+  assert.match(capability, /opener:allow-default-urls/);
+  assert.doesNotMatch(
+    capability,
+    /shell:allow-execute|fs:allow-|http:default|process:allow-|opener:default|opener:allow-open-path/
+  );
 });
 
 test('Flatpak manifest uses the private-build identity and no home filesystem escape', async () => {
