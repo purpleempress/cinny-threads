@@ -32,9 +32,9 @@
     "beforeDevCommand": "npm --prefix .. start -- --port 8080",
     "devUrl": "http://localhost:8080"
   },
-  "productName": "Cinny Threads",
+  "productName": "Cinny",
   "mainBinaryName": "cinny-threads",
-  "version": "4.12.6-threads.1",
+  "version": "4.12.6-threads.2",
   "identifier": "io.github.purpleempress.CinnyThreads",
   "app": {
     "security": {

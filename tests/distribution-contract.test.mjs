@@ -10,15 +10,35 @@ const APP_ID = 'io.github.purpleempress.CinnyThreads';
 test('desktop wrapper has an independent private-build identity', async () => {
   const config = await readJson('desktop/src-tauri/tauri.conf.json');
   const cargo = await read('desktop/src-tauri/Cargo.toml');
+  const rust = await read('desktop/src-tauri/src/lib.rs');
+  const desktopEntry = await read('packaging/flatpak/io.github.purpleempress.CinnyThreads.desktop');
+  const appstream = await read(
+    'packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml'
+  );
 
-  assert.equal(config.productName, 'Cinny Threads');
+  assert.equal(config.productName, 'Cinny');
   assert.equal(config.mainBinaryName, 'cinny-threads');
   assert.equal(config.identifier, APP_ID);
   assert.equal(config.build.frontendDist, '../dist');
   assert.match(config.build.beforeBuildCommand, /build:desktop/);
+  assert.match(rust, /\.title\("Cinny"\)/);
+  assert.match(desktopEntry, /^Name=Cinny$/m);
+  assert.match(appstream, /<name>Cinny<\/name>/);
   assert.equal(config.plugins?.updater, undefined);
   assert.doesNotMatch(cargo, /tauri-plugin-updater/);
   assert.doesNotMatch(cargo, /\bupdater\b/);
+});
+
+test('desktop release metadata uses the current private-build version', async () => {
+  const config = await readJson('desktop/src-tauri/tauri.conf.json');
+  const desktopPackage = await readJson('desktop/package.json');
+  const appstream = await read(
+    'packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml'
+  );
+
+  assert.equal(config.version, '4.12.6-threads.2');
+  assert.equal(desktopPackage.version, '4.12.6-threads.2');
+  assert.match(appstream, /<release version="4\.12\.6-threads\.2"/);
 });
 
 test('desktop webview permissions exclude command execution and arbitrary filesystem access', async () => {

@@ -28,6 +28,17 @@ test('thread replies use a Matrix m.thread relation without timeline fallback', 
   assert.match(input, /is_falling_back:\s*false/);
 });
 
+test('thread reply counts use correct singular and plural spelling', async () => {
+  const { formatReplyCount } = await import('../src/app/utils/formatReplyCount.js');
+  const summary = await read('src/app/features/room/ThreadSummary.tsx');
+  const drawer = await read('src/app/features/room/ThreadsDrawer.tsx');
+
+  assert.equal(formatReplyCount(1), '1 reply');
+  assert.equal(formatReplyCount(11), '11 replies');
+  assert.match(summary, /formatReplyCount\(replyCount\)/);
+  assert.match(drawer, /formatReplyCount\(replyCount\)/);
+});
+
 test('Matrix SDK thread aggregation is explicitly enabled', async () => {
   const initMatrix = await read('src/client/initMatrix.ts');
   assert.match(initMatrix, /threadSupport:\s*true/);

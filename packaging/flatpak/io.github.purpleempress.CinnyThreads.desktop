@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Cinny Threads
+Name=Cinny
 Comment=Thread-focused Matrix client
 Icon=io.github.purpleempress.CinnyThreads
 Exec=cinny-threads

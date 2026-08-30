@@ -69,6 +69,7 @@ import ThreadReplyInput from './ThreadReplyInput';
 import { RoomViewFollowingPlaceholder } from './RoomViewFollowing';
 import { GetContentCallback, MessageEvent } from '../../../types/matrix/room';
 import { ContainerColor } from '../../styles/ContainerColor.css';
+import { formatReplyCount } from '../../utils/formatReplyCount';
 
 const MAX_THREAD_BACKFILL_PAGES = 20;
 
@@ -114,7 +115,7 @@ function ThreadListItem({
         </Text>
         <Box shrink="No">
           <Text size="T200" priority="300" style={{ whiteSpace: 'nowrap' }}>
-            {replyCount} reply{replyCount === 1 ? '' : 's'}
+            {formatReplyCount(replyCount)}
           </Text>
         </Box>
         {unreadCount > 0 && <UnreadBadge count={unreadCount} />}

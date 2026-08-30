@@ -6,6 +6,7 @@ import * as css from './ThreadSummary.css';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useThreadUnreadCount } from '../../hooks/useThreadUnreadCount';
 import { UnreadBadge } from '../../components/unread-badge';
+import { formatReplyCount } from '../../utils/formatReplyCount';
 
 /**
  * Element-style thread summary shown beneath a root message in the main timeline
@@ -89,9 +90,7 @@ export function ThreadSummary({ room, thread, onOpen }: ThreadSummaryProps) {
         style={{ flexShrink: 0 }}
       />
       <Text size="T200" priority="300" truncate style={{ flexGrow: 1 }} align="Left">
-        {preview
-          ? `${replyCount} reply${replyCount === 1 ? '' : 's'} · ${preview}`
-          : `${replyCount} reply${replyCount === 1 ? '' : 's'}`}
+        {preview ? `${formatReplyCount(replyCount)} · ${preview}` : formatReplyCount(replyCount)}
       </Text>
       {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
     </button>
