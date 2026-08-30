@@ -42,7 +42,11 @@ test('desktop CI builds and smoke-tests Windows EXE and Flatpak artifacts', asyn
   assert.match(workflow, /\.exe/);
   assert.match(workflow, /flatpak-builder/);
   assert.match(workflow, /build-bundle/);
+  assert.match(workflow, /npm audit --audit-level=moderate/);
+  assert.match(workflow, /npm --prefix desktop audit --audit-level=moderate/);
   assert.match(workflow, /cargo audit --file desktop\/src-tauri\/Cargo\.lock/);
+  assert.match(workflow, /windows-exe:[\s\S]*needs: dependency-audit/);
+  assert.match(workflow, /flatpak:[\s\S]*needs: dependency-audit/);
   assert.match(workflow, /smoke/i);
   assert.doesNotMatch(workflow, /TAURI_SIGNING_PRIVATE_KEY|pull_request_target/);
 });
