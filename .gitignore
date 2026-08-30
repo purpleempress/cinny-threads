@@ -2,6 +2,12 @@ experiment
 dist
 node_modules
 devAssets
+flatpak-build/
+flatpak-repo/
+.flatpak-builder/
+artifacts/
+*.flatpak
+*.sha256
 
 .DS_Store
 .idea

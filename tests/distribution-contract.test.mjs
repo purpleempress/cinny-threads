@@ -14,6 +14,8 @@ test('desktop wrapper has an independent private-build identity', async () => {
   assert.equal(config.productName, 'Cinny Threads');
   assert.equal(config.mainBinaryName, 'cinny-threads');
   assert.equal(config.identifier, APP_ID);
+  assert.equal(config.build.frontendDist, '../dist');
+  assert.match(config.build.beforeBuildCommand, /build:desktop/);
   assert.equal(config.plugins?.updater, undefined);
   assert.doesNotMatch(cargo, /tauri-plugin-updater/);
   assert.doesNotMatch(cargo, /\bupdater\b/);
@@ -28,6 +30,7 @@ test('Flatpak manifest uses the private-build identity and no home filesystem es
   const manifest = await read('packaging/flatpak/io.github.purpleempress.CinnyThreads.yml');
   assert.match(manifest, new RegExp(`id: ${APP_ID}`));
   assert.match(manifest, /command: cinny-threads/);
+  assert.match(manifest, /type: git[\s\S]*path: \.\.\/\.\.[\s\S]*branch: main/);
   assert.doesNotMatch(manifest, /--filesystem=home/);
   assert.doesNotMatch(manifest, /--share=network[^\n]*#|--filesystem=host/);
 });
@@ -39,6 +42,7 @@ test('desktop CI builds and smoke-tests Windows EXE and Flatpak artifacts', asyn
   assert.match(workflow, /\.exe/);
   assert.match(workflow, /flatpak-builder/);
   assert.match(workflow, /build-bundle/);
+  assert.match(workflow, /cargo audit --file desktop\/src-tauri\/Cargo\.lock/);
   assert.match(workflow, /smoke/i);
   assert.doesNotMatch(workflow, /TAURI_SIGNING_PRIVATE_KEY|pull_request_target/);
 });

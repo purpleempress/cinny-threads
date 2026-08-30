@@ -1,0 +1,134 @@
+name: build desktop artifacts
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24.13.1
+  APP_ID: io.github.purpleempress.CinnyThreads
+
+jobs:
+  windows-exe:
+    name: windows NSIS EXE
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - name: Verify Rust toolchain
+        shell: pwsh
+        run: |
+          rustc --version
+          cargo --version
+      - name: Install dependencies without lifecycle scripts
+        shell: pwsh
+        run: |
+          npm ci --ignore-scripts
+          npm --prefix desktop ci --ignore-scripts
+      - name: Run contracts
+        run: npm test
+      - name: Build Windows NSIS installer
+        run: npm --prefix desktop run tauri build -- --bundles nsis
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+      - name: Normalise, checksum, and smoke-test installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem 'desktop/src-tauri/target/release/bundle/nsis' -Filter '*.exe' | Select-Object -First 1
+          if (-not $installer) { throw 'NSIS installer was not produced' }
+
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          $artifact = Join-Path $PWD 'artifacts/Cinny-Threads-windows-x86_64.exe'
+          Copy-Item $installer.FullName $artifact
+          $hash = (Get-FileHash -Algorithm SHA256 $artifact).Hash.ToLowerInvariant()
+          "$hash  Cinny-Threads-windows-x86_64.exe" | Set-Content -NoNewline 'artifacts/Cinny-Threads-windows-x86_64.exe.sha256'
+
+          $installDir = Join-Path $env:RUNNER_TEMP 'cinny-threads-smoke'
+          $result = Start-Process -FilePath $artifact -ArgumentList '/S',"/D=$installDir" -Wait -PassThru
+          if ($result.ExitCode -ne 0) { throw "installer smoke test failed with exit code $($result.ExitCode)" }
+          $app = Get-ChildItem $installDir -Recurse -Filter 'cinny-threads.exe' | Select-Object -First 1
+          if (-not $app) { throw 'installed cinny-threads.exe was not found' }
+          $process = Start-Process -FilePath $app.FullName -PassThru
+          Start-Sleep -Seconds 10
+          if ($process.HasExited) { throw "installed application exited during smoke test with $($process.ExitCode)" }
+          Stop-Process -Id $process.Id -Force
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cinny-threads-windows-x86_64
+          path: artifacts/Cinny-Threads-windows-x86_64.exe*
+          if-no-files-found: error
+          retention-days: 14
+
+  flatpak:
+    name: Linux Flatpak
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Audit Rust dependencies
+        run: |
+          cargo install cargo-audit --locked --version 0.22.2
+          cargo audit --file desktop/src-tauri/Cargo.lock
+      - name: Install Flatpak build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder xvfb dbus-x11
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+      - name: Build Flatpak repository
+        run: |
+          flatpak-builder --user --disable-rofiles-fuse --force-clean --install-deps-from=flathub --repo=flatpak-repo flatpak-build packaging/flatpak/io.github.purpleempress.CinnyThreads.yml
+          flatpak build-bundle flatpak-repo Cinny-Threads-linux-x86_64.flatpak "$APP_ID"
+      - name: Install and smoke-test Flatpak
+        run: |
+          flatpak install --user -y ./Cinny-Threads-linux-x86_64.flatpak
+          dbus-run-session -- bash -euo pipefail -c '
+            Xvfb :99 -screen 0 1280x800x24 >/tmp/cinny-xvfb.log 2>&1 &
+            xvfb_pid=$!
+            export DISPLAY=:99
+            flatpak run "$APP_ID" >/tmp/cinny-flatpak.log 2>&1 &
+            runner_pid=$!
+            found=0
+            for _ in $(seq 1 20); do
+              if flatpak ps --columns=application | grep -Fxq "$APP_ID"; then
+                found=1
+                break
+              fi
+              sleep 1
+            done
+            if [ "$found" -ne 1 ]; then
+              cat /tmp/cinny-flatpak.log
+              exit 1
+            fi
+            sleep 10
+            flatpak ps --columns=application | grep -Fxq "$APP_ID"
+            flatpak kill "$APP_ID"
+            wait "$runner_pid" || true
+            kill "$xvfb_pid" || true
+          '
+      - name: Checksum Flatpak
+        run: sha256sum Cinny-Threads-linux-x86_64.flatpak > Cinny-Threads-linux-x86_64.flatpak.sha256
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cinny-threads-linux-x86_64
+          path: Cinny-Threads-linux-x86_64.flatpak*
+          if-no-files-found: error
+          retention-days: 14

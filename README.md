@@ -1,4 +1,11 @@
 # Cinny
+
+> [!NOTE]
+> This is the private `purpleempress/cinny-threads` build. It starts from Cinny
+> v4.12.6 and adds a dedicated Matrix thread drawer and thread-only conversation
+> view. See [PROVENANCE.md](./PROVENANCE.md) for the exact source review and
+> [SECURITY.md](./SECURITY.md) for the desktop security boundary.
+
 <p>
     <a href="https://github.com/ajbura/cinny/releases">
         <img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/ajbura/cinny/total?logo=github&style=social"></a>

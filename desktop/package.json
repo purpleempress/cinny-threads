@@ -1,0 +1,15 @@
+{
+  "name": "cinny-threads-desktop",
+  "version": "4.12.6-threads.1",
+  "private": true,
+  "description": "Thread-focused Cinny desktop wrapper",
+  "scripts": {
+    "tauri": "tauri",
+    "build": "tauri build"
+  },
+  "author": "Cinny contributors",
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "@tauri-apps/cli": "2.7.1"
+  }
+}

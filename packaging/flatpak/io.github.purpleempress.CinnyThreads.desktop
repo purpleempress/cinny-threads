@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cinny Threads
+Comment=Thread-focused Matrix client
+Icon=io.github.purpleempress.CinnyThreads
+Exec=cinny-threads
+Terminal=false
+Categories=Network;InstantMessaging;Chat;
+Keywords=Matrix;chat;threads;Cinny;
+X-GNOME-UsesNotifications=true

@@ -61,8 +61,9 @@ export function ThreadSummary({ room, thread, onOpen }: ThreadSummaryProps) {
 
   const myId = mx.getSafeUserId();
   const iSentLast = !!lastReply && lastReply.getSender() === myId;
+  const lastReplyId = lastReply?.getId();
   const hasUnread =
-    !!lastReply && !iSentLast && !!myId && !liveThread.hasUserReadEvent(myId, lastReply.getId());
+    !!lastReplyId && !iSentLast && !!myId && !liveThread.hasUserReadEvent(myId, lastReplyId);
   // Numeric unread count sourced from the room's thread notification map —
   // the same data the ThreadsDrawer list pill and the left channel list use.
   const unreadCount = useThreadUnreadCount(room, liveThread);
@@ -82,8 +83,12 @@ export function ThreadSummary({ room, thread, onOpen }: ThreadSummaryProps) {
       onClick={handleClick}
       aria-label={hasUnread ? 'Open thread with unread replies' : 'Open thread'}
     >
-      <Icon size="100" src={hasUnread ? Icons.ThreadUnread : Icons.Thread} style={{ flexShrink: 0 }} />
-      <Text size="T200" priority="300" truncate style={{ flexGrow: 1 }} align="Start">
+      <Icon
+        size="100"
+        src={hasUnread ? Icons.ThreadUnread : Icons.Thread}
+        style={{ flexShrink: 0 }}
+      />
+      <Text size="T200" priority="300" truncate style={{ flexGrow: 1 }} align="Left">
         {preview
           ? `${replyCount} reply${replyCount === 1 ? '' : 's'} · ${preview}`
           : `${replyCount} reply${replyCount === 1 ? '' : 's'}`}

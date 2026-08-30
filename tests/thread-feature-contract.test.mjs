@@ -33,6 +33,13 @@ test('Matrix SDK thread aggregation is explicitly enabled', async () => {
   assert.match(initMatrix, /threadSupport:\s*true/);
 });
 
+test('automatic thread backfill has a hard page limit', async () => {
+  const drawer = await read('src/app/features/room/ThreadsDrawer.tsx');
+  assert.match(drawer, /MAX_THREAD_BACKFILL_PAGES\s*=\s*20/);
+  assert.match(drawer, /page\s*<\s*MAX_THREAD_BACKFILL_PAGES/);
+  assert.doesNotMatch(drawer, /while\s*\(!cancelled\)/);
+});
+
 test('the thread interface defaults on and remains user-configurable', async () => {
   const settings = await read('src/app/state/settings.ts');
   const generalSettings = await read('src/app/features/settings/general/General.tsx');

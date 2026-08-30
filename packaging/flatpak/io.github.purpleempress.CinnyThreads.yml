@@ -1,0 +1,46 @@
+id: io.github.purpleempress.CinnyThreads
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: cinny-threads
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node24
+  - org.freedesktop.Sdk.Extension.rust-stable
+
+finish-args:
+  - --socket=x11
+  - --share=ipc
+  - --device=dri
+  - --socket=pulseaudio
+  - --share=network
+  - --talk-name=org.freedesktop.Notifications
+
+build-options:
+  append-path: /usr/lib/sdk/node24/bin:/usr/lib/sdk/rust-stable/bin
+
+modules:
+  - name: cinny-threads
+    sources:
+      - type: git
+        path: ../..
+        branch: main
+      - node-sources.json
+      - cargo-sources.json
+    buildsystem: simple
+    build-options:
+      env:
+        CARGO_HOME: /run/build/cinny-threads/cargo
+        XDG_CACHE_HOME: /run/build/cinny-threads/flatpak-node/cache
+        npm_config_cache: /run/build/cinny-threads/flatpak-node/npm-cache
+        npm_config_offline: 'true'
+        NODE_OPTIONS: --max_old_space_size=4096
+    build-commands:
+      - npm ci --offline --ignore-scripts
+      - npm ci --offline --ignore-scripts --prefix=desktop
+      - cargo --offline fetch --manifest-path desktop/src-tauri/Cargo.toml
+      - npm --prefix desktop run tauri build -- --no-bundle -v
+      - install -Dm755 desktop/src-tauri/target/release/cinny-threads /app/bin/cinny-threads
+      - install -Dm644 packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml /app/share/metainfo/io.github.purpleempress.CinnyThreads.metainfo.xml
+      - install -Dm644 packaging/flatpak/io.github.purpleempress.CinnyThreads.desktop /app/share/applications/io.github.purpleempress.CinnyThreads.desktop
+      - install -Dm644 public/res/svg/cinny.svg /app/share/icons/hicolor/scalable/apps/io.github.purpleempress.CinnyThreads.svg

@@ -5,7 +5,6 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import inject from '@rollup/plugin-inject';
-import topLevelAwait from 'vite-plugin-top-level-await';
 import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'fs';
 import path from 'path';
@@ -16,31 +15,37 @@ const copyFiles = {
     {
       src: 'node_modules/@element-hq/element-call-embedded/dist/*',
       dest: 'public/element-call',
+      rename: { stripBase: true },
     },
     {
       src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
       dest: '',
-      rename: 'pdf.worker.min.js',
+      rename: { stripBase: true, name: 'pdf.worker.min.js' },
     },
     {
       src: 'netlify.toml',
       dest: '',
+      rename: { stripBase: true },
     },
     {
       src: 'config.json',
       dest: '',
+      rename: { stripBase: true },
     },
     {
       src: 'public/manifest.json',
       dest: '',
+      rename: { stripBase: true },
     },
     {
-      src: 'public/res/android',
-      dest: 'public/',
+      src: 'public/res/android/*',
+      dest: 'public/android',
+      rename: { stripBase: true },
     },
     {
-      src: 'public/locales',
-      dest: 'public/',
+      src: 'public/locales/*',
+      dest: 'public/locales',
+      rename: { stripBase: true },
     },
   ],
 };
@@ -88,12 +93,6 @@ export default defineConfig({
   },
   plugins: [
     serverMatrixSdkCryptoWasm('/node_modules/.vite/deps/pkg/matrix_sdk_crypto_wasm_bg.wasm'),
-    topLevelAwait({
-      // The export name of top-level await promise for each chunk module
-      promiseExportName: '__tla',
-      // The function to generate import names of top-level await promise in each chunk module
-      promiseImportName: (i) => `__tla_${i}`,
-    }),
     viteStaticCopy(copyFiles),
     vanillaExtractPlugin(),
     wasm(),

@@ -70,6 +70,8 @@ import { RoomViewFollowingPlaceholder } from './RoomViewFollowing';
 import { GetContentCallback, MessageEvent } from '../../../types/matrix/room';
 import { ContainerColor } from '../../styles/ContainerColor.css';
 
+const MAX_THREAD_BACKFILL_PAGES = 20;
+
 function getSenderName(room: Room, userId: string): string {
   return getMemberDisplayName(room, userId) ?? getMxIdLocalPart(userId) ?? userId;
 }
@@ -110,9 +112,11 @@ function ThreadListItem({
         <Text size="B300" truncate style={{ flexGrow: 1 }}>
           {preview || 'Thread'}
         </Text>
-        <Text size="T200" priority="300" shrink="No" style={{ whiteSpace: 'nowrap' }}>
-          {replyCount} reply{replyCount === 1 ? '' : 's'}
-        </Text>
+        <Box shrink="No">
+          <Text size="T200" priority="300" style={{ whiteSpace: 'nowrap' }}>
+            {replyCount} reply{replyCount === 1 ? '' : 's'}
+          </Text>
+        </Box>
         {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
       </Box>
     </MenuItem>
@@ -287,14 +291,10 @@ function ThreadMessages({
     const backfill = async () => {
       setLoading(true);
       try {
-        // Keep pulling older events until the thread's history is exhausted.
-        // Each paginate call advances the thread timeline token, so it must run
-        // sequentially (hence the awaited loop). Always run to exhaustion even
-        // if some events are already loaded from sync — a thread with 73
-        // replies may only have its 8 most-recent events locally, and skipping
-        // backfill here would leave the rest unrendered.
-        // eslint-disable-next-line no-constant-condition
-        while (!cancelled) {
+        // Pull older events sequentially, but cap automatic work so a pathological
+        // thread cannot keep the client busy indefinitely. Twenty 50-event pages
+        // still cover up to 1,000 historical events on first open.
+        for (let page = 0; page < MAX_THREAD_BACKFILL_PAGES && !cancelled; page += 1) {
           // eslint-disable-next-line no-await-in-loop
           const hasMore = await mx.paginateEventTimeline(timeline, { backwards: true, limit: 50 });
           if (!hasMore) break;
