@@ -4,7 +4,7 @@
 
 - Upstream Cinny baseline: `cinnyapp/cinny@33f4ba3674fa4f57e048e81b28f8426defc03eac` (`v4.12.6`)
 - Reviewed thread implementation: `jrimmer/cinny-threads@01663f34dd0289f68ff283a6ea6eb61f653869b2`
-- Maintained private repository: `purpleempress/cinny-threads`
+- Maintained repository: `purpleempress/cinny-threads`
 
 The working branch was created from the pinned upstream Cinny baseline. It was
 not made by copying the reviewed fork's final tree.
@@ -80,7 +80,7 @@ Those changes were not imported, including:
 - unrelated global unread and media behaviour
 - unrelated packaging and CI glue
 
-The private build restores narrowly scoped CI and dependency maintenance rather
+The maintained fork restores narrowly scoped CI and dependency maintenance rather
 than inheriting either project's deployment credentials or publication jobs.
 
 ## Desktop wrapper provenance

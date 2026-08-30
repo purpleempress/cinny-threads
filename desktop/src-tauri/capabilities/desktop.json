@@ -4,5 +4,5 @@
   "description": "Minimum capability set for the Cinny webview",
   "platforms": ["macOS", "windows", "linux"],
   "windows": ["main"],
-  "permissions": ["core:default", "opener:allow-default-urls"]
+  "permissions": ["core:default"]
 }

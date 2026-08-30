@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>io.github.purpleempress.CinnyThreads</id>
   <name>Cinny</name>
-  <summary>A private thread-focused build of Cinny</summary>
+  <summary>A thread-focused build of Cinny</summary>
   <developer id="io.github.purpleempress">
     <name>purpleempress</name>
   </developer>
@@ -19,10 +19,10 @@
     <category>Chat</category>
   </categories>
   <description>
-    <p>Cinny is a private build of the Cinny Matrix client with a dedicated thread drawer and thread-only conversation view.</p>
+    <p>Cinny is a maintained fork of the Cinny Matrix client with a dedicated thread drawer and thread-only conversation view.</p>
   </description>
   <releases>
-    <release version="4.12.6-threads.3" date="2026-08-30"/>
+    <release version="4.12.6-threads.4" date="2026-08-30"/>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>

@@ -7,7 +7,7 @@ const readJson = async (path) => JSON.parse(await read(path));
 
 const APP_ID = 'io.github.purpleempress.CinnyThreads';
 
-test('desktop wrapper has an independent private-build identity', async () => {
+test('desktop wrapper has an independent fork identity', async () => {
   const config = await readJson('desktop/src-tauri/tauri.conf.json');
   const cargo = await read('desktop/src-tauri/Cargo.toml');
   const rust = await read('desktop/src-tauri/src/lib.rs');
@@ -29,28 +29,41 @@ test('desktop wrapper has an independent private-build identity', async () => {
   assert.doesNotMatch(cargo, /\bupdater\b/);
 });
 
-test('desktop release metadata uses the current private-build version', async () => {
+test('desktop release metadata uses the current fork version', async () => {
   const config = await readJson('desktop/src-tauri/tauri.conf.json');
   const desktopPackage = await readJson('desktop/package.json');
   const appstream = await read(
     'packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml'
   );
 
-  assert.equal(config.version, '4.12.6-threads.3');
-  assert.equal(desktopPackage.version, '4.12.6-threads.3');
-  assert.match(appstream, /<release version="4\.12\.6-threads\.3"/);
+  assert.equal(config.version, '4.12.6-threads.4');
+  assert.equal(desktopPackage.version, '4.12.6-threads.4');
+  assert.match(appstream, /<release version="4\.12\.6-threads\.4"/);
 });
 
-test('desktop webview permissions allow safe external URLs without filesystem access', async () => {
-  const capability = await read('desktop/src-tauri/capabilities/desktop.json');
-  assert.match(capability, /opener:allow-default-urls/);
+test('desktop captures external link clicks and routes them through native navigation policy', async () => {
+  const desktopCapability = await readJson('desktop/src-tauri/capabilities/desktop.json');
+  const rust = await read('desktop/src-tauri/src/lib.rs');
+  const clickBridge = await read('desktop/src-tauri/src/external_links.js');
+
+  assert.match(rust, /open_js_links_on_click\(false\)/);
+  assert.match(rust, /\.on_page_load\(/);
+  assert.match(rust, /\.eval\(include_str!\("external_links\.js"\)\)/);
+  assert.match(rust, /is_allowed_external_url/);
+  assert.match(rust, /\.on_navigation\(/);
+  assert.match(clickBridge, /__CINNY_EXTERNAL_LINK_CAPTURE_INSTALLED__/);
+  assert.match(clickBridge, /addEventListener\('click',[\s\S]*true\)/);
+  assert.match(clickBridge, /event\.preventDefault\(\)/);
+  assert.match(clickBridge, /window\.location\.assign\(url\.href\)/);
+  assert.doesNotMatch(clickBridge, /__TAURI_INTERNALS__|plugin:opener/);
+  assert.deepEqual(desktopCapability.permissions, ['core:default']);
   assert.doesNotMatch(
-    capability,
-    /shell:allow-execute|fs:allow-|http:default|process:allow-|opener:default|opener:allow-open-path/
+    JSON.stringify(desktopCapability),
+    /shell:allow-execute|fs:allow-|http:default|process:allow-|opener:/
   );
 });
 
-test('Flatpak manifest uses the private-build identity and no home filesystem escape', async () => {
+test('Flatpak manifest uses the fork identity and no home filesystem escape', async () => {
   const manifest = await read('packaging/flatpak/io.github.purpleempress.CinnyThreads.yml');
   assert.match(manifest, new RegExp(`id: ${APP_ID}`));
   assert.match(manifest, /command: cinny-threads/);

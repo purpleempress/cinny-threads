@@ -5,11 +5,11 @@
 
 mod external_url;
 
-use external_url::is_allowed_external_url;
+use external_url::{is_allowed_external_url, is_local_frontend_url};
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
 use tauri::{
-    webview::{NewWindowResponse, WebviewWindowBuilder},
+    webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
     WebviewUrl,
 };
 use tauri_plugin_opener::OpenerExt;
@@ -38,7 +38,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_localhost::Builder::new(port).build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_opener::Builder::new()
+                .open_js_links_on_click(false)
+                .build(),
+        )
         .setup(move |app| {
             #[cfg(debug_assertions)]
             let window_url = WebviewUrl::App(Default::default());
@@ -51,13 +55,34 @@ pub fn run() {
                 WebviewUrl::External(url)
             };
 
-            let app_handle = app.handle().clone();
+            let navigation_app_handle = app.handle().clone();
+            let new_window_app_handle = app.handle().clone();
             let window_builder = WebviewWindowBuilder::new(app, "main".to_string(), window_url)
                 .title("Cinny")
                 .disable_drag_drop_handler()
+                .on_page_load(move |window, payload| {
+                    if payload.event() == PageLoadEvent::Finished
+                        && is_local_frontend_url(payload.url().as_str(), port)
+                    {
+                        let _ = window.eval(include_str!("external_links.js"));
+                    }
+                })
+                .on_navigation(move |url| {
+                    if is_local_frontend_url(url.as_str(), port) {
+                        return true;
+                    }
+                    if is_allowed_external_url(url.as_str()) {
+                        let _ = navigation_app_handle
+                            .opener()
+                            .open_url(url.as_str(), None::<&str>);
+                    }
+                    false
+                })
                 .on_new_window(move |url, _features| {
                     if is_allowed_external_url(url.as_str()) {
-                        let _ = app_handle.opener().open_url(url.as_str(), None::<&str>);
+                        let _ = new_window_app_handle
+                            .opener()
+                            .open_url(url.as_str(), None::<&str>);
                     }
                     NewWindowResponse::Deny
                 });
@@ -78,10 +103,10 @@ mod tests {
 
     #[test]
     fn desktop_url_is_versioned_to_bypass_stale_web_assets() {
-        assert_eq!(env!("CARGO_PKG_VERSION"), "4.12.6-threads.3");
+        assert_eq!(env!("CARGO_PKG_VERSION"), "4.12.6-threads.4");
         assert_eq!(
             versioned_localhost_url(44548, env!("CARGO_PKG_VERSION")),
-            "http://localhost:44548/?app-version=4.12.6-threads.3"
+            "http://localhost:44548/?app-version=4.12.6-threads.4"
         );
     }
 }
