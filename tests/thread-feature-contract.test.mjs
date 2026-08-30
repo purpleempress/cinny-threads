@@ -21,10 +21,11 @@ test('the dedicated thread interface is present', async () => {
   assert.match(timeline, /ThreadSummary/);
 });
 
-test('thread replies use a Matrix m.thread relation', async () => {
+test('thread replies use a Matrix m.thread relation without timeline fallback', async () => {
   const input = await read('src/app/features/room/ThreadReplyInput.tsx');
   assert.match(input, /RelationType\.Thread/);
-  assert.match(input, /is_falling_back:\s*true/);
+  assert.match(input, /event_id:\s*rootEventId/);
+  assert.match(input, /is_falling_back:\s*false/);
 });
 
 test('Matrix SDK thread aggregation is explicitly enabled', async () => {
