@@ -103,10 +103,10 @@ mod tests {
 
     #[test]
     fn desktop_url_is_versioned_to_bypass_stale_web_assets() {
-        assert_eq!(env!("CARGO_PKG_VERSION"), "4.12.6-threads.4");
+        assert_eq!(env!("CARGO_PKG_VERSION"), "4.12.6-threads.5");
         assert_eq!(
             versioned_localhost_url(44548, env!("CARGO_PKG_VERSION")),
-            "http://localhost:44548/?app-version=4.12.6-threads.4"
+            "http://localhost:44548/?app-version=4.12.6-threads.5"
         );
     }
 }

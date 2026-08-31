@@ -36,9 +36,9 @@ test('desktop release metadata uses the current fork version', async () => {
     'packaging/flatpak/io.github.purpleempress.CinnyThreads.metainfo.xml'
   );
 
-  assert.equal(config.version, '4.12.6-threads.4');
-  assert.equal(desktopPackage.version, '4.12.6-threads.4');
-  assert.match(appstream, /<release version="4\.12\.6-threads\.4"/);
+  assert.equal(config.version, '4.12.6-threads.5');
+  assert.equal(desktopPackage.version, '4.12.6-threads.5');
+  assert.match(appstream, /<release version="4\.12\.6-threads\.5"/);
 });
 
 test('desktop captures external link clicks and routes them through native navigation policy', async () => {
