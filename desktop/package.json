@@ -10,6 +10,6 @@
   "author": "Cinny contributors",
   "license": "AGPL-3.0-only",
   "devDependencies": {
-    "@tauri-apps/cli": "2.7.1"
+    "@tauri-apps/cli": "2.11.4"
   }
 }
