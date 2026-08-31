@@ -37,6 +37,6 @@ export function getRenderableThreadEvents(liveEvents, rootEvent) {
 export function getThreadEventRenderState(event, editedEvent) {
   return {
     content: editedEvent?.getContent()['m.new_content'] ?? event.getContent(),
-    edited: Boolean(editedEvent),
+    edited: Boolean(editedEvent ?? event.replacingEvent()),
   };
 }

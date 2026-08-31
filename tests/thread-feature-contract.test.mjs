@@ -144,6 +144,43 @@ test('thread rendering folds repeated edits into the original message', async ()
   assert.equal(renderState.edited, true);
 });
 
+test('bundled replacements preserve edited content and indicator', () => {
+  const client = createClient({ baseUrl: 'https://example.invalid' });
+  const original = client.getEventMapper({ decrypt: false })({
+    event_id: '$bundled-original',
+    room_id: '!thread:example.org',
+    sender: '@alice:example.org',
+    origin_server_ts: 1,
+    type: EventType.RoomMessage,
+    content: { msgtype: 'm.text', body: 'Original body' },
+    unsigned: {
+      'm.relations': {
+        [RelationType.Replace]: {
+          event_id: '$bundled-edit',
+          room_id: '!thread:example.org',
+          sender: '@alice:example.org',
+          origin_server_ts: 2,
+          type: EventType.RoomMessage,
+          content: {
+            msgtype: 'm.text',
+            body: '* Bundled edit',
+            'm.new_content': { msgtype: 'm.text', body: 'Bundled edit' },
+            'm.relates_to': {
+              rel_type: RelationType.Replace,
+              event_id: '$bundled-original',
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const renderState = getThreadEventRenderState(original, undefined);
+  assert.equal(original.replacingEvent()?.getId(), '$bundled-edit');
+  assert.equal(renderState.content.body, 'Bundled edit');
+  assert.equal(renderState.edited, true);
+});
+
 test('decrypted thread events retain messages and suppress replacements', async () => {
   const client = createClient({ baseUrl: 'https://example.invalid' });
   const timelineSet = new EventTimelineSet(undefined, { timelineSupport: true }, client);
