@@ -70,6 +70,7 @@ import { RoomViewFollowingPlaceholder } from './RoomViewFollowing';
 import { GetContentCallback, MessageEvent } from '../../../types/matrix/room';
 import { ContainerColor } from '../../styles/ContainerColor.css';
 import { formatReplyCount } from '../../utils/formatReplyCount';
+import { getRenderableThreadEvents, getThreadEventRenderState } from './threadEventPresentation';
 
 const MAX_THREAD_BACKFILL_PAGES = 20;
 
@@ -318,24 +319,11 @@ function ThreadMessages({
   const events = useMemo(() => {
     const live: MatrixEvent[] = thread.timelineSet.getLiveTimeline().getEvents();
     const root = thread.rootEvent;
-    const rootId = root?.getId();
     // Some thread timeline sets already contain the root event (e.g. after
     // backfill via the /messages thread filter) while others do not. Prepend
     // the root once, but only when it is not already present, to avoid the
     // root message rendering twice.
-    const alreadyHasRoot = !!rootId && live.some((m) => m.getId() === rootId);
-    let withRoot: MatrixEvent[];
-    if (alreadyHasRoot || !root) {
-      withRoot = live;
-    } else {
-      withRoot = [root, ...live];
-    }
-    return withRoot.filter(
-      (m: MatrixEvent) =>
-        m.getType() === MessageEvent.RoomMessage ||
-        m.getType() === MessageEvent.RoomMessageEncrypted ||
-        m.getType() === MessageEvent.Sticker
-    );
+    return getRenderableThreadEvents(live, root);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread, revision]);
 
@@ -396,9 +384,8 @@ function ThreadMessages({
         const editedEvent = eventId
           ? getEditedEvent(eventId, mEvent, thread.timelineSet)
           : undefined;
-        const getContent = (() =>
-          editedEvent?.getContent()['m.new_content'] ??
-          mEvent.getContent()) as unknown as GetContentCallback;
+        const { content, edited } = getThreadEventRenderState(mEvent, editedEvent);
+        const getContent = (() => content) as unknown as GetContentCallback;
         const eventType = mEvent.getType();
 
         return (
@@ -435,7 +422,7 @@ function ThreadMessages({
                         displayName={senderDisplayName}
                         msgType={mEvent.getContent().msgtype ?? ''}
                         ts={mEvent.getTs()}
-                        edited={!!editedEvent}
+                        edited={edited}
                         getContent={getContent}
                         mediaAutoLoad={mediaAutoLoad}
                         urlPreview={showUrlPreview}
@@ -463,7 +450,7 @@ function ThreadMessages({
                 displayName={senderDisplayName}
                 msgType={mEvent.getContent().msgtype ?? ''}
                 ts={mEvent.getTs()}
-                edited={!!editedEvent}
+                edited={edited}
                 getContent={getContent}
                 mediaAutoLoad={mediaAutoLoad}
                 urlPreview={showUrlPreview}
